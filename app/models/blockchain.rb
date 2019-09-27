@@ -9,7 +9,6 @@ class Blockchain < ApplicationRecord
   validates :status, inclusion: { in: %w[active disabled] }
   validates :height,
             :min_confirmations,
-            :step,
             numericality: { greater_than_or_equal_to: 1, only_integer: true }
   validates :server, url: { allow_blank: true }
 
