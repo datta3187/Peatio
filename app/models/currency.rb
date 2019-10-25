@@ -16,8 +16,7 @@ class Currency < ApplicationRecord
   # == Attributes ===========================================================
 
   attr_readonly :id,
-                :type,
-                :base_factor
+                :type
 
   # Code is aliased to id because it's more user-friendly primary key.
   # It's preferred to use code where this attributes are equal.
@@ -35,6 +34,7 @@ class Currency < ApplicationRecord
 
   validates :code, presence: true, uniqueness: { case_sensitive: false }
 
+  # TODO: Add specs to this validation.
   validates :blockchain_key,
             inclusion: { in: -> (_) { Blockchain.pluck(:key).map(&:to_s) } },
             if: :coin?
@@ -51,8 +51,6 @@ class Currency < ApplicationRecord
             :min_withdraw_amount,
             :withdraw_limit_24h,
             :withdraw_limit_72h,
-            :precision,
-            :position,
             numericality: { greater_than_or_equal_to: 0 }
 
   validate :validate_options
@@ -115,13 +113,6 @@ class Currency < ApplicationRecord
   #   code.eth? # true if code equals to "eth".
   def id
     super&.inquiry
-  end
-
-  # subunit (or fractional monetary unit) - a monetary unit
-  # that is valued at a fraction (usually one hundredth)
-  # of the basic monetary unit
-  def subunits=(n)
-    self.base_factor = 10 ** n
   end
 
   def as_json(*)
@@ -187,10 +178,6 @@ class Currency < ApplicationRecord
     options.keys.present?  ? \
           options.keys.map{|v| [v, options[v]]}.to_h \
           : OPTIONS_ATTRIBUTES.map(&:to_s).map{|v| [v, '']}.to_h
-  end
-
-  def subunits
-    Math.log(self.base_factor, 10).round
   end
 end
 

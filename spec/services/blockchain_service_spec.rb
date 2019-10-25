@@ -38,8 +38,7 @@ describe BlockchainService do
                          .returns(fake_adapter)
                          .at_least_once
 
-    service.stubs(:latest_block_number).returns(4)
-    fake_adapter.stubs(:latest_block_number).never
+    fake_adapter.stubs(:latest_block_number).returns(4)
   end
 
   # Deposit context: (mock fetch_block)
@@ -80,7 +79,7 @@ describe BlockchainService do
       context 'collect deposit after processing block' do
         before do
           clear_redis
-          service.stubs(:latest_block_number).returns(100)
+          blockchain.update!(height: 100)
           fake_adapter.stubs(:fetch_block!).returns(expected_transactions)
           AMQPQueue.expects(:enqueue).with(:events_processor, is_a(Hash))
           AMQPQueue.expects(:enqueue).with(:deposit_collection_fees, id: subject.first.id)
@@ -187,7 +186,7 @@ describe BlockchainService do
 
         before do
           clear_redis
-          service.stubs(:latest_block_number).returns(100)
+          blockchain.update!(height: 100)
           fake_adapter.stubs(:fetch_block!).returns(expected_transactions)
           service.process_block(block_number)
         end
@@ -350,26 +349,23 @@ describe BlockchainService do
       end
 
       let!(:transaction) do
-        Peatio::Transaction.new(hash: 'fake_hash', to_address: 'fake_address', amount: 1, block_number: 3, currency_id: fake_currency1.id, txout: 10, status: 'pending')
+        Peatio::Transaction.new(hash: 'fake_hash', to_address: 'fake_address', amount: 1, block_number: 1, currency_id: fake_currency1.id, txout: 10, status: 'pending')
       end
 
       let!(:succeed_transaction) do
-        Peatio::Transaction.new(hash: 'fake_hash', to_address: 'fake_address', amount: 1, block_number: 3, currency_id: fake_currency1.id, txout: 10, status: 'success')
+        Peatio::Transaction.new(hash: 'fake_hash', to_address: 'fake_address', amount: 1, block_number: 1, currency_id: fake_currency1.id, txout: 10, status: 'success')
       end
 
       before do
         fake_adapter.stubs(:respond_to?).returns(true)
         fake_adapter.stubs(:fetch_block!).returns([transaction])
-        service.stubs(:latest_block_number).returns(10)
         fake_adapter.stubs(:fetch_transaction).with(transaction).returns(succeed_transaction)
         service.process_block(block_number)
       end
 
       subject { Withdraws::Coin.find_by(currency: fake_currency1, txid: transaction.hash) }
 
-      it do
-        expect(subject.succeed?).to be true
-      end
+      it { expect(subject.succeed?).to be true }
     end
   end
 
@@ -387,7 +383,7 @@ describe BlockchainService do
 
     before do
       clear_redis
-      service.stubs(:latest_block_number).returns(100)
+      blockchain.update!(height: 100)
       PaymentAddress.create!(currency: fake_currency1,
         account: fake_account1,
         address: 'fake_address')
