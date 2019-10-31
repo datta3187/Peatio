@@ -6,10 +6,10 @@ class Currency < ApplicationRecord
   # == Constants ============================================================
 
   DEFAULT_OPTIONS_SCHEMA = {
-    erc20_contract_address: {
-      title: 'ERC20 Contract Address',
-      type: 'string'
-    }
+      erc20_contract_address: {
+          title: 'ERC20 Contract Address',
+          type: 'string'
+      }
   }
   OPTIONS_ATTRIBUTES = %i[erc20_contract_address gas_limit gas_price].freeze
 
