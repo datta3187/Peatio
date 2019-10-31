@@ -35,9 +35,9 @@ class Currency < ApplicationRecord
   validates :code, presence: true, uniqueness: { case_sensitive: false }
 
   # TODO: Add specs to this validation.
-  validates :blockchain_key,
-            inclusion: { in: -> (_) { Blockchain.pluck(:key).map(&:to_s) } },
-            if: :coin?
+  # validates :blockchain_key,
+  #           inclusion: { in: -> (_) { Blockchain.pluck(:key).map(&:to_s) } },
+  #           if: :coin?
 
   validates :type, inclusion: { in: -> (_) { Currency.types.map(&:to_s) } }
   validates :symbol, presence: true, length: { maximum: 1 }
